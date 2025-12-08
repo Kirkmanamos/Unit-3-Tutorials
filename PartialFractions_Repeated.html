@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repeated Linear Factors</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            /* Palette - Consistent with previous apps */
+            --bg-color: #FAFAF9; /* Stone-50 */
+            --card-bg: #FFFFFF;
+            --text-primary: #1C1917; /* Stone-900 */
+            --text-secondary: #57534E; /* Stone-600 */
+            --accent: #4338CA; /* Indigo-700 for "Repeated" topic distinction */
+            --accent-light: #E0E7FF;
+            --primary-teal: #0F766E; /* Teal-700 */
+            --border-color: #E7E5E4; /* Stone-200 */
+            
+            /* Spacing */
+            --container-max-width: 800px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        main {
+            width: 100%;
+            max-width: var(--container-max-width);
+            position: relative;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            padding: 3rem;
+            margin-bottom: 2rem;
+            border: 1px solid white;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.6s ease-out 0.2s forwards;
+        }
+
+        .step-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .instruction {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+
+        .math-display {
+            font-size: 1.5rem;
+            padding: 2rem;
+            background: var(--bg-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 3rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+        }
+
+        button {
+            background-color: var(--text-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background-color: var(--primary-teal);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        button.secondary {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        button.secondary:hover {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes highlight {
+            0% { background-color: var(--bg-color); }
+            50% { background-color: var(--accent-light); }
+            100% { background-color: var(--bg-color); }
+        }
+
+        .animate-change {
+            animation: highlight 1s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <header>
+        <h1>Decomposing Rational Expressions</h1>
+        <div class="subtitle">Part 3: Repeated Linear Factors</div>
+    </header>
+
+    <main>
+        <div class="card">
+            <span class="step-badge" id="stepLabel">The Problem</span>
+            <div class="instruction" id="instructionText">
+                We want to decompose this expression with a repeated factor in the denominator.
+            </div>
+            
+            <div class="math-display" id="mathContent">
+                \[ \frac{-x-12}{x^2+14x+49} \]
+            </div>
+
+            <div class="controls">
+                <button class="secondary" id="prevBtn" disabled>Previous</button>
+                <button id="nextBtn">Factor Denominator &rarr;</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const steps = [
+            {
+                label: "The Problem",
+                instruction: "Consider the following rational expression.",
+                math: "\\frac{-x-12}{x^2+14x+49}",
+                btnText: "Factor Denominator",
+                progress: 0
+            },
+            {
+                label: "Step 1: Factor",
+                instruction: "Factor the denominator. Notice it is a perfect square trinomial.",
+                math: "\\frac{-x-12}{(x+7)^2}",
+                btnText: "Setup Decomposition",
+                progress: 14
+            },
+            {
+                label: "Step 2: Setup Rule",
+                instruction: "For a repeated linear factor \\((x+c)^n\\), we must include a term for every power from 1 to \\(n\\).",
+                math: "\\frac{-x-12}{(x+7)^2} = \\frac{A}{x+7} + \\frac{B}{(x+7)^2}",
+                btnText: "Eliminate Denominators",
+                progress: 28
+            },
+            {
+                label: "Step 3: Eliminate Denominators",
+                instruction: "Multiply both sides by the LCD, which is \\((x+7)^2\\).",
+                math: "-x-12 = A(x+7) + B",
+                btnText: "Distribute & Group",
+                progress: 42
+            },
+            {
+                label: "Step 4: Distribute",
+                instruction: "Distribute \\(A\\) and group the terms.",
+                math: "\\begin{aligned} -x-12 &= Ax + 7A + B \\\\ &= Ax + (7A+B) \\end{aligned}",
+                btnText: "Form System",
+                progress: 57
+            },
+            {
+                label: "Step 5: System of Equations",
+                instruction: "Equate coefficients: The \\(x\\) term coefficient is -1, and the constant term is -12.",
+                math: "\\begin{cases} A = -1 \\\\ 7A + B = -12 \\end{cases}",
+                btnText: "Solve System",
+                progress: 71
+            },
+            {
+                label: "Step 6: Solve",
+                instruction: "Substitute \\(A = -1\\) into the second equation to find \\(B\\).",
+                math: "\\begin{aligned} 7(-1) + B &= -12 \\\\ -7 + B &= -12 \\\\ B &= -5 \\end{aligned}",
+                btnText: "Final Result",
+                progress: 85
+            },
+            {
+                label: "Final Result",
+                instruction: "Substitute \\(A\\) and \\(B\\) back into the decomposition.",
+                math: "\\frac{-x-12}{(x+7)^2} = \\frac{-1}{x+7} + \\frac{-5}{(x+7)^2}",
+                btnText: "Restart",
+                progress: 100
+            }
+        ];
+
+        let currentStep = 0;
+
+        const mathEl = document.getElementById('mathContent');
+        const instructionEl = document.getElementById('instructionText');
+        const stepLabelEl = document.getElementById('stepLabel');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const progressBar = document.getElementById('progressBar');
+
+        function render() {
+            const step = steps[currentStep];
+            
+            mathEl.style.opacity = '0';
+            instructionEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                stepLabelEl.textContent = step.label;
+                instructionEl.innerHTML = step.instruction;
+
+                // Render inline math in the instruction text
+                renderMathInElement(instructionEl, {
+                    delimiters: [
+                        {left: "\\(", right: "\\)", display: false}
+                    ]
+                });
+                
+                katex.render(step.math, mathEl, {
+                    throwOnError: false,
+                    displayMode: true
+                });
+
+                nextBtn.innerHTML = step.btnText + (currentStep < steps.length - 1 ? " &rarr;" : " &#8634;");
+                prevBtn.disabled = currentStep === 0;
+                
+                progressBar.style.width = step.progress + '%';
+
+                mathEl.style.opacity = '1';
+                instructionEl.style.opacity = '1';
+                
+                mathEl.classList.remove('animate-change');
+                void mathEl.offsetWidth; 
+                mathEl.classList.add('animate-change');
+
+            }, 200);
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+            } else {
+                currentStep = 0; 
+            }
+            render();
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                render();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            render();
+        });
+
+    </script>
+</body>
+</html>
