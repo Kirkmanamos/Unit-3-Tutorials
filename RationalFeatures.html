@@ -204,6 +204,11 @@
         .interactive-btn:hover {
             background-color: var(--accent);
         }
+        
+        .interactive-btn.active {
+            background-color: var(--accent);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
 
         .highlight {
             color: var(--accent);
@@ -304,12 +309,12 @@
                         </ul>
                     </div>
                     <div class="demo-panel">
-                        <button class="interactive-btn" onclick="toggleYInt()">Find y-intercept</button>
-                        <button class="interactive-btn" onclick="toggleXInt()">Find x-intercepts</button>
+                        <button id="btn-y-int" class="interactive-btn" onclick="toggleYInt()">Find y-intercept</button>
+                        <button id="btn-x-int" class="interactive-btn" onclick="toggleXInt()">Find x-intercepts</button>
                         
-                        <div id="int-result-area" style="margin-top: 1.5rem; text-align: left; padding-left: 1rem; border-left: 3px solid var(--accent); display: none;">
-                            <div id="y-int-res" style="margin-bottom: 0.5rem;"></div>
-                            <div id="x-int-res"></div>
+                        <div id="int-result-area" style="margin-top: 1.5rem; text-align: left; padding-left: 1rem; border-left: 3px solid var(--accent); opacity: 0; transition: opacity 0.5s;">
+                            <div id="y-int-res" style="margin-bottom: 0.5rem; display: none;"></div>
+                            <div id="x-int-res" style="display: none;"></div>
                         </div>
                     </div>
                 </div>
@@ -404,14 +409,13 @@
             yIntVisible = !yIntVisible;
             const resArea = document.getElementById('int-result-area');
             const el = document.getElementById('y-int-res');
+            const btn = document.getElementById('btn-y-int');
             
-            // Manage parent visibility
-            if (yIntVisible || xIntVisible) {
-                resArea.style.display = 'block';
-            } else {
-                resArea.style.display = 'none';
-            }
-
+            // Toggle Button Visual
+            if (yIntVisible) btn.classList.add('active');
+            else btn.classList.remove('active');
+            
+            // Content
             if (yIntVisible) {
                 el.innerHTML = "<strong>y-int (set x=0):</strong> \\( f(0) = \\frac{0-0-2}{0+3} = -2/3 \\). Point: (0, -2/3)";
                 renderMathInElement(el, {delimiters: [{left: "\\(", right: "\\)", display: false}]});
@@ -419,26 +423,38 @@
             } else {
                 el.style.display = 'none';
             }
+
+            updateInterceptsVisibility();
         }
 
         function toggleXInt() {
             xIntVisible = !xIntVisible;
             const resArea = document.getElementById('int-result-area');
             const el = document.getElementById('x-int-res');
+            const btn = document.getElementById('btn-x-int');
              
-            // Manage parent visibility
-            if (yIntVisible || xIntVisible) {
-                resArea.style.display = 'block';
-            } else {
-                resArea.style.display = 'none';
-            }
+            // Toggle Button Visual
+            if (xIntVisible) btn.classList.add('active');
+            else btn.classList.remove('active');
 
+            // Content
             if (xIntVisible) {
                 el.innerHTML = "<strong>x-int (set num=0):</strong> \\( x^2-x-2 = (x-2)(x+1) = 0 \\). Points: (2, 0) and (-1, 0)";
                 renderMathInElement(el, {delimiters: [{left: "\\(", right: "\\)", display: false}]});
                 el.style.display = 'block';
             } else {
                 el.style.display = 'none';
+            }
+
+            updateInterceptsVisibility();
+        }
+
+        function updateInterceptsVisibility() {
+            const resArea = document.getElementById('int-result-area');
+            if (yIntVisible || xIntVisible) {
+                resArea.style.opacity = '1';
+            } else {
+                resArea.style.opacity = '0';
             }
         }
 
