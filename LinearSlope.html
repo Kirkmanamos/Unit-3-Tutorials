@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Function Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:ital,wght@1,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563EB;
+            --text-color: #1F2937;
+            --bg-color: #F9FAFB;
+            --card-bg: #FFFFFF;
+            --grid-line: #E5E7EB;
+            --axis-color: #374151;
+            --slider-track: #E5E7EB;
+            --slider-thumb: #2563EB;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        h1 {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 2rem;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border-radius: 16px;
+            overflow: hidden;
+            background-color: #ffffff;
+            border: 1px solid #F3F4F6;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .slider-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .slider-label {
+            font-family: 'Lora', serif;
+            font-style: italic;
+            font-size: 1.25rem;
+        }
+
+        .slider-value {
+            font-variant-numeric: tabular-nums;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.125rem;
+            background: #EFF6FF;
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+        }
+
+        /* Custom Range Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        /* Chrome/Safari */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: var(--slider-track);
+            border-radius: 999px;
+            transition: background 0.2s;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid var(--slider-thumb);
+            cursor: move; /* improved cursor */
+            -webkit-appearance: none;
+            margin-top: -8px; /* centers thumb */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        input[type=range]:active::-webkit-slider-thumb {
+            background: var(--slider-thumb);
+            border-color: var(--slider-thumb);
+        }
+
+        /* Firefox */
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: var(--slider-track);
+            border-radius: 999px;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            height: 24px;
+            width: 24px;
+            border: 2px solid var(--slider-thumb);
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .status-indicator {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #6B7280;
+            padding: 0.5rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            margin-top: -0.5rem;
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>f(x) = mx</h1>
+    
+    <div class="canvas-wrapper">
+        <canvas id="graphCanvas" width="800" height="800" style="width: 400px; height: 400px;"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="slider-container">
+            <div class="slider-header">
+                <span class="slider-label">m</span>
+                <span class="slider-value" id="slopeValue">0.5</span>
+            </div>
+            <!-- Range from -5 to 5, step 0.1 -->
+            <input type="range" id="slopeSlider" min="-5" max="5" step="0.1" value="0.5">
+        </div>
+        <div class="status-indicator" id="statusText">
+            Positive Slope
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('slopeSlider');
+    const slopeValueDisplay = document.getElementById('slopeValue');
+    const statusText = document.getElementById('statusText');
+
+    // Canvas configuration
+    // We use a virtual coordinate system from -5 to 5
+    const SCALE = 80; // pixels per unit (800px / 10 units)
+    const CENTER_X = canvas.width / 2;
+    const CENTER_Y = canvas.height / 2;
+
+    // State
+    let m = parseFloat(slider.value);
+
+    function update() {
+        m = parseFloat(slider.value);
+        slopeValueDisplay.textContent = m.toFixed(1);
+        
+        // Update status text
+        if (m > 0) {
+            statusText.textContent = "Positive Slope (Increasing)";
+            statusText.style.color = "#059669"; // Greenish
+        } else if (m < 0) {
+            statusText.textContent = "Negative Slope (Decreasing)";
+            statusText.style.color = "#DC2626"; // Reddish
+        } else {
+            statusText.textContent = "Zero Slope (Constant)";
+            statusText.style.color = "#6B7280"; // Gray
+        }
+
+        draw();
+    }
+
+    function toScreenX(x) {
+        return CENTER_X + x * SCALE;
+    }
+
+    function toScreenY(y) {
+        return CENTER_Y - y * SCALE;
+    }
+
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "#F3F4F6"; // Very light grid lines
+
+        // Draw grid lines
+        for (let i = -5; i <= 5; i++) {
+            // Vertical
+            ctx.beginPath();
+            ctx.moveTo(toScreenX(i), 0);
+            ctx.lineTo(toScreenX(i), canvas.height);
+            ctx.stroke();
+
+            // Horizontal
+            ctx.beginPath();
+            ctx.moveTo(0, toScreenY(i));
+            ctx.lineTo(canvas.width, toScreenY(i));
+            ctx.stroke();
+        }
+
+        // Axes
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#374151"; // Dark gray for axes
+        ctx.lineCap = "round";
+
+        // X Axis
+        ctx.beginPath();
+        ctx.moveTo(0, CENTER_Y);
+        ctx.lineTo(canvas.width, CENTER_Y);
+        ctx.stroke();
+
+        // Y Axis
+        ctx.beginPath();
+        ctx.moveTo(CENTER_X, 0);
+        ctx.lineTo(CENTER_X, canvas.height);
+        ctx.stroke();
+
+        // Arrowheads
+        drawArrow(ctx, 0, CENTER_Y, canvas.width, CENTER_Y);
+        drawArrow(ctx, CENTER_X, canvas.height, CENTER_X, 0);
+
+        // Labels
+        ctx.font = "bold 20px Inter, sans-serif";
+        ctx.fillStyle = "#374151";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        
+        // Number toggles
+        ctx.font = "16px Inter, sans-serif";
+        ctx.fillStyle = "#9CA3AF";
+        
+        // Draw Ticks
+        for (let i = -4; i <= 4; i++) {
+            if (i !== 0) {
+                // X ticks
+                ctx.beginPath();
+                ctx.moveTo(toScreenX(i), CENTER_Y - 5);
+                ctx.lineTo(toScreenX(i), CENTER_Y + 5);
+                ctx.stroke();
+                // Number
+                ctx.fillText(i, toScreenX(i), CENTER_Y + 12);
+
+                // Y ticks
+                ctx.beginPath();
+                ctx.moveTo(CENTER_X - 5, toScreenY(i));
+                ctx.lineTo(CENTER_X + 5, toScreenY(i));
+                ctx.stroke();
+                // Number (skip overlapping)
+                ctx.fillText(i, CENTER_X - 20, toScreenY(i) - 6);
+            }
+        }
+    }
+
+    function drawArrow(ctx, fromX, fromY, toX, toY) {
+        const headlen = 12; // length of head in pixels
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const angle = Math.atan2(dy, dx);
+        
+        // We just draw the arrow head here as the line is already drawn
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+    }
+
+    function drawFunction() {
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#2563EB"; // Primary blue
+        ctx.lineJoin = "round";
+        
+        ctx.beginPath();
+        
+        // We draw the line from x = -6 to x = 6 to ensure it covers the canvas
+        // y = mx
+        const startX = -6;
+        const startY = m * startX;
+        const endX = 6;
+        const endY = m * endX;
+
+        ctx.moveTo(toScreenX(startX), toScreenY(startY));
+        ctx.lineTo(toScreenX(endX), toScreenY(endY));
+        ctx.stroke();
+    }
+
+    function draw() {
+        drawGrid();
+        drawFunction();
+    }
+
+    // Event Listeners
+    slider.addEventListener('input', update);
+
+    // Initial draw
+    update();
+
+</script>
+</body>
+</html>
