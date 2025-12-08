@@ -304,8 +304,8 @@
                         </ul>
                     </div>
                     <div class="demo-panel">
-                        <button class="interactive-btn" onclick="showYInt()">Find y-intercept</button>
-                        <button class="interactive-btn" onclick="showXInt()">Find x-intercepts</button>
+                        <button class="interactive-btn" onclick="toggleYInt()">Find y-intercept</button>
+                        <button class="interactive-btn" onclick="toggleXInt()">Find x-intercepts</button>
                         
                         <div id="int-result-area" style="margin-top: 1.5rem; text-align: left; padding-left: 1rem; border-left: 3px solid var(--accent); display: none;">
                             <div id="y-int-res" style="margin-bottom: 0.5rem;"></div>
@@ -395,18 +395,51 @@
         }
 
         // Tab 3: Intercepts
-        function showYInt() {
-            document.getElementById('int-result-area').style.display = 'block';
+        // Tab 3: Intercepts
+        // State for toggles
+        let yIntVisible = false;
+        let xIntVisible = false;
+
+        function toggleYInt() {
+            yIntVisible = !yIntVisible;
+            const resArea = document.getElementById('int-result-area');
             const el = document.getElementById('y-int-res');
-            el.innerHTML = "<strong>y-int (set x=0):</strong> \\( f(0) = \\frac{0-0-2}{0+3} = -2/3 \\). Point: (0, -2/3)";
-            renderMathInElement(el, {delimiters: [{left: "\\(", right: "\\)", display: false}]});
+            
+            // Manage parent visibility
+            if (yIntVisible || xIntVisible) {
+                resArea.style.display = 'block';
+            } else {
+                resArea.style.display = 'none';
+            }
+
+            if (yIntVisible) {
+                el.innerHTML = "<strong>y-int (set x=0):</strong> \\( f(0) = \\frac{0-0-2}{0+3} = -2/3 \\). Point: (0, -2/3)";
+                renderMathInElement(el, {delimiters: [{left: "\\(", right: "\\)", display: false}]});
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
         }
 
-        function showXInt() {
-            document.getElementById('int-result-area').style.display = 'block';
+        function toggleXInt() {
+            xIntVisible = !xIntVisible;
+            const resArea = document.getElementById('int-result-area');
             const el = document.getElementById('x-int-res');
-            el.innerHTML = "<strong>x-int (set num=0):</strong> \\( x^2-x-2 = (x-2)(x+1) = 0 \\). Points: (2, 0) and (-1, 0)";
-            renderMathInElement(el, {delimiters: [{left: "\\(", right: "\\)", display: false}]});
+             
+            // Manage parent visibility
+            if (yIntVisible || xIntVisible) {
+                resArea.style.display = 'block';
+            } else {
+                resArea.style.display = 'none';
+            }
+
+            if (xIntVisible) {
+                el.innerHTML = "<strong>x-int (set num=0):</strong> \\( x^2-x-2 = (x-2)(x+1) = 0 \\). Points: (2, 0) and (-1, 0)";
+                renderMathInElement(el, {delimiters: [{left: "\\(", right: "\\)", display: false}]});
+                el.style.display = 'block';
+            } else {
+                el.style.display = 'none';
+            }
         }
 
     </script>
