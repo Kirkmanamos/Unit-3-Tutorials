@@ -189,7 +189,7 @@
 
         .grid-line { stroke: var(--graph-grid); stroke-width: 0.5; }
         .axis { stroke: var(--graph-axis); stroke-width: 1.5; }
-        .curve { fill: none; stroke: var(--graph-curve); stroke-width: 3; stroke-linecap: round; }
+        .curve { fill: none; stroke: var(--graph-curve); stroke-width: 3px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
         .asymptote { stroke: var(--graph-asymptote); stroke-width: 1.5; stroke-dasharray: 4,4; }
         .asymptote-h { stroke: var(--graph-asymptote-h); stroke-width: 1.5; stroke-dasharray: 4,4; }
         .point { fill: var(--text-primary); }
@@ -309,8 +309,8 @@
             // Grid lines (faint)
             for(let i=-10; i<=10; i++) {
                 if(i===0) continue;
-                html += `<line x1="${i}" y1="-10" x2="${i}" y2="10" class="grid-line" stroke-opacity="0.6" vector-effect="non-scaling-stroke" />`;
-                html += `<line x1="-10" y1="${i}" x2="10" y2="${i}" class="grid-line" stroke-opacity="0.3" vector-effect="non-scaling-stroke" />`;
+                html += `<line x1="${i}" y1="-10" x2="${i}" y2="10" class="grid-line" stroke-opacity="0.5" vector-effect="non-scaling-stroke" />`;
+                html += `<line x1="-10" y1="${i}" x2="10" y2="${i}" class="grid-line" stroke-opacity="0.5" vector-effect="non-scaling-stroke" />`;
             }
 
             // Axes with Arrows
