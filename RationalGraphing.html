@@ -21,7 +21,7 @@
             --card-bg: #FFFFFF;
             --text-primary: #1C1917; /* Stone-900 */
             --text-secondary: #57534E; /* Stone-600 */
-            --accent: #BE123C; /* Rose-700 (consistent with error/warning but distinct here) */
+            --accent: #BE123C; /* Rose-700 */
             --accent-light: #FFE4E6;
             --primary-teal: #0F766E; /* Teal-700 */
             --border-color: #E7E5E4; /* Stone-200 */
@@ -128,6 +128,12 @@
             text-align: center;
             margin-bottom: 2rem;
             border: 1px solid var(--border-color);
+            min-height: 4rem; /* prevent jump */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: auto;
+            max-width: 100%;
         }
 
         /* Controls */
@@ -177,20 +183,31 @@
             height: 100%;
             background: var(--bg-color);
             border-radius: 8px;
+            /* Prevent selecting text in SVG */
+            user-select: none;
         }
 
-        .grid-line { stroke: var(--graph-grid); stroke-width: 1; }
-        .axis { stroke: var(--graph-axis); stroke-width: 2; }
-        .curve { fill: none; stroke: var(--graph-curve); stroke-width: 3; stroke-linecap: round; }
-        .asymptote { stroke: var(--graph-asymptote); stroke-width: 2; stroke-dasharray: 5,5; }
-        .asymptote-h { stroke: var(--graph-asymptote-h); stroke-width: 2; stroke-dasharray: 5,5; }
+        .grid-line { stroke: var(--graph-grid); stroke-width: 0.5; }
+        .axis { stroke: var(--graph-axis); stroke-width: 1.5; }
+        .curve { fill: none; stroke: var(--graph-curve); stroke-width: 2.5; stroke-linecap: round; }
+        .asymptote { stroke: var(--graph-asymptote); stroke-width: 1.5; stroke-dasharray: 4,4; }
+        .asymptote-h { stroke: var(--graph-asymptote-h); stroke-width: 1.5; stroke-dasharray: 4,4; }
         .point { fill: var(--text-primary); }
-        .hole { fill: var(--bg-color); stroke: var(--text-primary); stroke-width: 2; }
+        .hole { fill: var(--bg-color); stroke: var(--text-primary); stroke-width: 1.5; }
         
-        .label {
+        .axis-label {
             font-family: 'Inter', sans-serif;
-            font-size: 12px;
+            font-size: 0.6px; /* Small because of viewBox scaling */
             fill: var(--text-secondary);
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        
+        .tick-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.5px;
+            fill: var(--text-secondary);
+            text-anchor: middle;
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -224,8 +241,13 @@
 
         <!-- Right Panel: Graph -->
         <div class="graph-panel">
-            <svg viewBox="-10 -10 20 20" id="graphSvg">
-                <!-- Grid setup in JS -->
+            <svg viewBox="-11 -11 22 22" id="graphSvg">
+                <defs>
+                    <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                        <path d="M0,0 L0,6 L6,3 z" fill="#374151" />
+                    </marker>
+                </defs>
+                <!-- Content injected via JS -->
             </svg>
         </div>
     </main>
@@ -233,12 +255,6 @@
     <script>
         const svg = document.getElementById('graphSvg');
         
-        // Example: f(x) = (x^2 - 3x - 4) / (x^2 - 1)
-        // Factored: (x-4)(x+1) / (x-1)(x+1)
-        // Simplified: (x-4)/(x-1) with Hole at x=-1
-        // VA: x=1, HA: y=1
-        // x-int: 4, y-int: f(0)=4
-
         const steps = [
             {
                 label: "The Function",
@@ -255,7 +271,7 @@
             {
                 label: "Step 2: Holes",
                 text: "Identify common factors. \\((x+1)\\) cancels out, creating a HOLE at \\(x=-1\\).",
-                math: "\\text{Hole at } x=-1 \\quad \\implies f(x) \\approx \\frac{x-4}{x-1}",
+                math: "\\begin{aligned} \\text{Hole at } x &= -1 \\\\ \\implies f(x) &\\approx \\frac{x-4}{x-1} \\end{aligned}",
                 draw: ['hole']
             },
             {
@@ -287,78 +303,93 @@
         let currentStep = 0;
 
         function initGrid() {
-            // Draw Axises
+            // Draw Axises and Grid
             let html = '';
             
-            // Grid lines
+            // Grid lines (faint)
             for(let i=-10; i<=10; i++) {
                 if(i===0) continue;
-                html += `<line x1="${i}" y1="-10" x2="${i}" y2="10" class="grid-line" stroke-opacity="0.3" vector-effect="non-scaling-stroke" />`;
+                html += `<line x1="${i}" y1="-10" x2="${i}" y2="10" class="grid-line" stroke-opacity="0.6" vector-effect="non-scaling-stroke" />`;
                 html += `<line x1="-10" y1="${i}" x2="10" y2="${i}" class="grid-line" stroke-opacity="0.3" vector-effect="non-scaling-stroke" />`;
             }
 
-            // Axes
-            html += `<line x1="-10" y1="0" x2="10" y2="0" class="axis" vector-effect="non-scaling-stroke" />`;
-            html += `<line x1="0" y1="-10" x2="0" y2="10" class="axis" vector-effect="non-scaling-stroke" />`;
+            // Axes with Arrows
+            // X Axis
+            html += `<line x1="-10.5" y1="0" x2="10.5" y2="0" class="axis" marker-end="url(#arrow)" vector-effect="non-scaling-stroke" />`;
+            // Y Axis (svg coords are flipped for text, but lines are raw. We will handle flip in the content group)
+            html += `<line x1="0" y1="-10.5" x2="0" y2="10.5" class="axis" marker-end="url(#arrow)" vector-effect="non-scaling-stroke" />`;
+
+            // Axis Labels
+            html += `<text x="10.8" y="0.2" class="axis-label">x</text>`;
+            html += `<text x="0.4" y="10.8" class="axis-label">y</text>`;
+
+            // Ticks (Numeric)
+            // We need to be careful with coordinate systems. 
+            // In standard SVG: Y goes DOWN. 10 is at the bottom. -10 is at the top.
+            // But we want to graph in Cartesian where Y goes UP.
+            // Typically we flip the group containing the graph. 
+            // However, text will look upside down if we flip the whole group.
+            // Strategy: Draw Grid and Text normally (adapting Y values), then Draw Graph in a flipped group.
+            
+            // SVG Y = - Cartesian Y.
+            // Tick 5 -> SVG Y = -5.
+            const ticks = [-10, -5, 5, 10];
+            ticks.forEach(t => {
+                // X ticks
+                html += `<line x1="${t}" y1="-0.2" x2="${t}" y2="0.2" stroke="var(--text-secondary)" stroke-width="0.05" />`;
+                html += `<text x="${t}" y="0.8" class="tick-label">${t}</text>`;
+
+                // Y ticks (Carteisan 't' becomes SVG '-t')
+                html += `<line x1="-0.2" y1="${-t}" x2="0.2" y2="${-t}" stroke="var(--text-secondary)" stroke-width="0.05" />`;
+                html += `<text x="0.8" y="${-t+0.15}" class="tick-label" text-anchor="start">${t}</text>`;
+            });
 
             return html;
         }
 
-        // Feature Elements
-        const features = {
-            'hole': `<circle cx="-1" cy="2.5" r="0.4" class="hole" fill="white" />`, // f(-1) in simplified ( (-1-4)/(-1-1) = -5/-2 = 2.5 )
-            'va': `<line x1="1" y1="-10" x2="1" y2="10" class="asymptote" vector-effect="non-scaling-stroke" />`,
-            'ha': `<line x1="-10" y1="1" x2="10" y2="1" class="asymptote-h" vector-effect="non-scaling-stroke" />`,
-            'points': `
-                <circle cx="4" cy="0" r="0.25" class="point" />
-                <circle cx="0" cy="4" r="0.25" class="point" />
-            `,
-            // Curve part 1 (x < 1)
-            'curve': `
-                <path d="M -10 1.91 L -9 1.93 L -5 2.16 L -2 3 L -1.2 3.8 L -1 2.5 M -0.8 2.38 L 0 4 L 0.5 7 L 0.8 16" class="curve" fill="none" />
-                <path d="M 1.2 -16 L 1.5 -5 L 2 -2 L 4 0 L 7 0.5 L 10 0.66" class="curve" fill="none" />
-            `
-            // Note: SVG Y coords are flipped usually, but I set viewBox -10 to 10.
-            // Wait, SVG Y increases downwards.
-            // Mapping: Graph Y = 5 -> SVG Y = -5.
-            // I need to use transform="scale(1, -1)" on a group to fix this easily.
-        };
-
-        // Redoing features with correct SVG coordinates (Y flip)
-        // Group will handle the flip
-        
         function updateGraph(drawList) {
-            let content = initGrid();
+            // Static grid first (labels and axes)
+            let staticContent = initGrid();
             
-            // Add a group for flipping Y axis to cartesian
-            content += `<g transform="scale(1, -1)">`;
+            // Dynamic content (Graph curves, points) - Needs Cartesian Flip
+            // Transform: Scale Y by -1. Because that makes 10 become -10 (which is up in SVG space).
+            let dynamicContent = `<g transform="scale(1, -1)">`;
 
             if (drawList.includes('va')) { // x = 1
-                content += `<line x1="1" y1="-10" x2="1" y2="10" class="asymptote" vector-effect="non-scaling-stroke" />`; 
+                dynamicContent += `<line x1="1" y1="-10" x2="1" y2="10" class="asymptote" vector-effect="non-scaling-stroke" />`; 
             }
             if (drawList.includes('ha')) { // y = 1
-                content += `<line x1="-10" y1="1" x2="10" y2="1" class="asymptote-h" vector-effect="non-scaling-stroke" />`;
+                dynamicContent += `<line x1="-10" y1="1" x2="10" y2="1" class="asymptote-h" vector-effect="non-scaling-stroke" />`;
             }
             if (drawList.includes('curve')) {
-                // Left Branch (x < 1): Passes through (0,4) and Hole(-1, 2.5)
-                // path data points calculated: x=-4 -> y=(-8/-5)=1.6. x=-1->2.5. x=0->4. x=0.5->(-3.5/-0.5)=7.
-                content += `<path d="M -10 1.27 L -4 1.6 L -2 2 L -1.1 2.4 M -0.9 2.6 L 0 4 L 0.5 7 L 0.8 14" class="curve" fill="none" />`;
-                
-                // Right Branch (x > 1): Passes through (4,0)
-                // x=1.5->(-2.5/0.5)=-5. x=2->(-2/1)=-2. x=4->0. x=7->(3/6)=0.5
-                content += `<path d="M 1.2 -14 L 1.5 -5 L 2 -2 L 4 0 L 7 0.5 L 10 0.66" class="curve" fill="none" />`;
+                // Left Branch (x < 1)
+                dynamicContent += `<path d="M -10 1.27 L -4 1.6 L -2 2 L -1.1 2.4 M -0.9 2.6 L 0 4 L 0.5 7 L 0.8 14" class="curve" fill="none" />`;
+                // Right Branch (x > 1)
+                dynamicContent += `<path d="M 1.2 -14 L 1.5 -5 L 2 -2 L 4 0 L 7 0.5 L 10 0.66" class="curve" fill="none" />`;
             }
             if (drawList.includes('points')) {
-                content += `<circle cx="4" cy="0" r="0.3" class="point" />`; // x-int
-                content += `<circle cx="0" cy="4" r="0.3" class="point" />`; // y-int
+                dynamicContent += `<circle cx="4" cy="0" r="0.25" class="point" />`; // x-int
+                dynamicContent += `<circle cx="0" cy="4" r="0.25" class="point" />`; // y-int
             }
             if (drawList.includes('hole')) {
-                // Hole at (-1, 2.5)
-                content += `<circle cx="-1" cy="2.5" r="0.3" class="hole" fill="white" vector-effect="non-scaling-stroke" stroke-width="0.1" />`;
+                dynamicContent += `<circle cx="-1" cy="2.5" r="0.25" class="hole" fill="white" vector-effect="non-scaling-stroke" />`;
             }
+            
+            dynamicContent += `</g>`;
 
-            content += `</g>`;
-            svg.innerHTML = content;
+            // Combine
+            const defs = `
+                <defs>
+                    <!-- Marker with viewBox to allow scaling. 
+                         Units are userSpaceOnUse (coordinate system units). 
+                         0.6 units is small enough relative to the 20x20 viewbox. -->
+                    <marker id="arrow" viewBox="0 0 10 10" markerWidth="0.6" markerHeight="0.6" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                        <path d="M0,0 L0,10 L10,5 z" fill="#374151" />
+                    </marker>
+                </defs>
+            `;
+            
+            svg.innerHTML = defs + staticContent + dynamicContent;
         }
 
         function render() {
@@ -369,12 +400,24 @@
             document.getElementById('instruction').textContent = s.text;
             
             const mathEl = document.getElementById('mathDisplay');
-            katex.render(s.math, mathEl, {displayMode: true});
             
-            // Render Math in Instructions if needed
-            renderMathInElement(document.getElementById('instruction'), {
-                delimiters: [{left: "\\(", right: "\\)", display: false}]
-            });
+            // Render Math Box
+            if (window.katex) {
+                katex.render(s.math, mathEl, {
+                    displayMode: true,
+                    throwOnError: false
+                });
+
+                // Render Instructions Math
+                renderMathInElement(document.getElementById('instruction'), {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "\\[", right: "\\]", display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
 
             // Update Graph
             updateGraph(s.draw);
@@ -406,9 +449,10 @@
         }
 
         // Init
-        nextStep(); // Start at step 0 calling render via logic, but simpler to just call render()
-        currentStep = 0;
-        document.addEventListener("DOMContentLoaded", render);
+        // Wait for fonts/scripts
+        document.addEventListener("DOMContentLoaded", () => {
+             render();
+        });
 
     </script>
 </body>
